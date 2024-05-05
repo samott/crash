@@ -23,6 +23,8 @@ Licence: BSD-2-Clause.
 
 ## Running the app
 
+Config values are in `.env`.
+
 ```bash
 npm run dev
 ```
