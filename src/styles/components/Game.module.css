@@ -1,0 +1,5 @@
+.Game {
+	border: 1px solid #000;
+	background-image: url('/space.png');
+	width: 90%;
+}
