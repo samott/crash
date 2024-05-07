@@ -1,0 +1,20 @@
+.SelectItem {
+	cursor: pointer;
+}
+
+.CurrencyItem {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	width: 12rem;
+}
+
+.CurrencyLabel {
+	display: flex;
+	align-items: center;
+}
+
+.CurrencyLabel > img {
+	width: 1.5rem;
+	margin-right: 0.4rem;
+}
