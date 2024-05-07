@@ -3,8 +3,10 @@ import { StaticImageData } from 'next/image';
 import EthereumIcon from '../images/currencies/eth.svg';
 import BitcoinIcon from '../images/currencies/btc.svg';
 
+export type CurrencyId = 'eth' | 'btc';
+
 export type Currency = {
-	id: string;
+	id: CurrencyId;
 	name: string;
 	units: string;
 	icon: StaticImageData;
@@ -27,3 +29,7 @@ export const currencies: Currency[] = [
 		decimals: 8,
 	},
 ] as const;
+
+export const currencyById = Object.fromEntries(
+	currencies.map(currency => [currency.id, currency])
+);
