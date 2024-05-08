@@ -1,21 +1,17 @@
+"use client"
+
 import GameControls from './GameControls';
 import BetList from './BetList';
 
-import { CurrencyId } from '../lib/currencies';
-
-const bets = [{
-	username: '#11111111',
-	amount: '0.0005',
-	currency: 'eth' as CurrencyId,
-	cashout: '1.32',
-	winnings: '0.099'
-}];
+import { useGameStore } from '../store/gameStore';
 
 export default function SidePanel() {
+	const bets = useGameStore((gameState) => gameState.waiting);
+
 	return (
 		<div>
 			<GameControls />
-			<BetList bets={bets} />
+			<BetList bets={bets ?? []} />
 		</div>
 	);
 }

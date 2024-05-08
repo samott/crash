@@ -19,10 +19,11 @@ export type CurrencyListProps = {
 }
 
 export default function CurrencyList({
-	balances
+	balances,
+	...props
 }: CurrencyListProps) {
 	return (
-		<Select defaultValue={currencies[0].id}>
+		<Select defaultValue={currencies[0].id} {...props}>
 			<SelectTrigger>
 				<SelectValue placeholder="Select a currency" />
 			</SelectTrigger>

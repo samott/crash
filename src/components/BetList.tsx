@@ -14,15 +14,11 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 
-import { currencyById, CurrencyId } from '../lib/currencies';
+import { currencyById } from '../lib/currencies';
 
-export type Bet = {
-	username: string;
-	amount: string;
-	currency: CurrencyId;
-	cashout: string;
-	winnings: string;
-}
+import { Bet } from '../store/gameStore';
+
+import { shortenWallet } from '../lib/utils';
 
 export type BetListProps = {
 	bets: Bet[];
@@ -42,20 +38,20 @@ export default function BetList({
 					<TableHeader>
 						<TableRow>
 							<TableHead className="w-[100px]">Player</TableHead>
-							<TableHead>Bet Amount</TableHead>
+							<TableHead>Amount</TableHead>
 							<TableHead>Cashout</TableHead>
 							<TableHead className="text-right">Winnings</TableHead>
 						</TableRow>
 					</TableHeader>
 					<TableBody>
 						{bets.map((bet) => (
-							<TableRow key={bet.username}>
-								<TableCell className="font-medium">{bet.username}</TableCell>
+							<TableRow key={bet.wallet}>
+								<TableCell className="font-medium">{shortenWallet(bet.wallet ?? 'User')}</TableCell>
 								<TableCell>
 									{bet.amount}{" "}
 									{currencyById[bet.currency]?.units ?? bet.currency.toUpperCase()}
 								</TableCell>
-								<TableCell>{bet.cashout}x</TableCell>
+								<TableCell>{bet.cashOut ? `${bet.cashOut}x` : '-'}</TableCell>
 								<TableCell className="text-right">
 									{bet.winnings}{" "}
 									{currencyById[bet.currency]?.units ?? bet.currency.toUpperCase()}

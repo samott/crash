@@ -1,0 +1,134 @@
+"use client"
+
+import { io } from "socket.io-client";
+
+import { create } from "zustand";
+
+export type GameStatus = 'Unknown' | 'Waiting' | 'Running' | 'Stopped';
+
+export type Bet = {
+	wallet: string;
+	amount: string;
+	currency: string;
+	cashOut: string;
+	cashedOut: boolean;
+	winnings: string;
+}
+
+export type GameStateData = {
+	gameId: string|null,
+	status: GameStatus;
+	players: Bet[];
+	waiting: Bet[];
+	startTime: number;
+	isConnected: boolean;
+	hasBet: boolean;
+	timeRemaining: number;
+}
+
+export type GameActions = {
+	placeBet: (betAmount: string, autoCashOut: string, currency: string) => void;
+	cancelBet: () => void;
+}
+
+export type GameState = GameStateData & { actions: GameActions };
+
+const initialState : GameStateData = {
+	gameId: null,
+	status: 'Unknown',
+	players: [],
+	waiting: [],
+	startTime: 0,
+	isConnected: false,
+	hasBet: false,
+	timeRemaining: 0,
+};
+
+type GameWaitingEventParams = {
+	startTime: number;
+};
+
+type BetListEventParams = {
+	players: Bet[];
+	waiting: Bet[];
+};
+
+export const useGameStore = create<GameState>((set, get) => {
+	const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL!, {
+		withCredentials: true
+	});
+
+	let gameWaitTimer: ReturnType<typeof setInterval>|null = null;
+
+	const gameWaiter = () => {
+		const { startTime } = get();
+		const timeRemaining = Math.round(startTime - new Date().getTime()/1000);
+
+		if (timeRemaining <= 0) {
+			set({ timeRemaining: 0 });
+
+			if (gameWaitTimer) {
+				clearInterval(gameWaitTimer);
+				gameWaitTimer = null;
+			}
+		} else {
+			set({ timeRemaining });
+		}
+	};
+
+	socket.on('connect', () => {
+		console.log('Socket connected');
+		set({ isConnected: true });
+	});
+
+	socket.on('disconnect', () => {
+		console.log('Socket disconnected');
+		set({ isConnected: false });
+	});
+
+	socket.on('GameWaiting', (params: GameWaitingEventParams) => {
+		console.log('Game in waiting state')
+		set({ startTime: params.startTime });
+		if (gameWaitTimer) {
+			clearInterval(gameWaitTimer);
+			gameWaitTimer = null;
+		}
+		setInterval(gameWaiter, 1000);
+	});
+
+	socket.on('BetList', (params: BetListEventParams) => {
+		console.log('Received bet list')
+		console.log(params);
+		set({
+			players: params.players,
+			waiting: params.waiting
+		} = params);
+	});
+
+	const actions = {
+		placeBet: (
+			betAmount: string,
+			autoCashOut: string,
+			currency: string
+		) => {
+			console.log(`Placing bet ${betAmount} with currency ${currency} and autoCashOut ${autoCashOut}...`);
+
+			socket.emit('placeBet', {
+				betAmount,
+				autoCashOut,
+				currency
+			});
+		},
+
+		cancelBet: () => {
+			console.log(`Cancelling bet...`);
+
+			socket.emit('cancelBet');
+		},
+	}
+
+	return {
+		...initialState,
+		actions
+	};
+});
