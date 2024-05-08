@@ -1,4 +1,4 @@
-import Web3Modal from '../contexts/Web3Modal';
+import RootProvider from '../providers/RootProvider';
 
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
@@ -20,7 +20,7 @@ export default function RootLayout({
 	children: React.ReactNode;
 }>) {
 	return (
-		<Web3Modal>
+		<RootProvider>
 			<html lang="en">
 				<body className={inter.className}>
 					<PageHeader />
@@ -28,6 +28,6 @@ export default function RootLayout({
 					<PageFooter />
 				</body>
 			</html>
-		</Web3Modal>
+		</RootProvider>
 	);
 }
