@@ -30,7 +30,11 @@ export default function CurrencyList({
 				<SelectGroup>
 					<SelectLabel>Currencies</SelectLabel>
 					{currencies.map((currency) =>
-						<SelectItem value={currency.id} className={styles.SelectItem}>
+						<SelectItem
+							value={currency.id}
+							className={styles.SelectItem}
+							key={currency.id}
+						>
 							<div className={styles.CurrencyItem}>
 								<div className={styles.CurrencyLabel}>
 									<Image src={currency.icon} alt={currency.units} />
