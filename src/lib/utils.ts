@@ -8,3 +8,7 @@ export function cn(...inputs: ClassValue[]) {
 export const shortenWallet = (wallet: string): string => {
 	return '#' + wallet.substring(2, 8);
 }
+
+export const elapsedToMultiplier = (elapsed: number): string => {
+	return Math.pow(Math.E, 6e-5 * elapsed).toFixed(2);
+}

@@ -4,6 +4,8 @@ import { io } from "socket.io-client";
 
 import { create } from "zustand";
 
+import { elapsedToMultiplier } from '../lib/utils';
+
 export type GameStatus = 'Unknown' | 'Waiting' | 'Running' | 'Stopped';
 
 export type Bet = {
@@ -24,6 +26,8 @@ export type GameStateData = {
 	isConnected: boolean;
 	hasBet: boolean;
 	timeRemaining: number;
+	timeElapsed: number;
+	multiplier: string;
 }
 
 export type GameActions = {
@@ -42,9 +46,15 @@ const initialState : GameStateData = {
 	isConnected: false,
 	hasBet: false,
 	timeRemaining: 0,
+	timeElapsed: 0,
+	multiplier: '0',
 };
 
 type GameWaitingEventParams = {
+	startTime: number;
+};
+
+type GameRunningEventParams = {
 	startTime: number;
 };
 
@@ -59,6 +69,7 @@ export const useGameStore = create<GameState>((set, get) => {
 	});
 
 	let gameWaitTimer: ReturnType<typeof setInterval>|null = null;
+	let gameRunTimer: ReturnType<typeof setInterval>|null = null;
 
 	const gameWaiter = () => {
 		const { startTime } = get();
@@ -76,6 +87,25 @@ export const useGameStore = create<GameState>((set, get) => {
 		}
 	};
 
+	const gameRunner = () => {
+		const { startTime, status } = get();
+		const timeElapsed = Math.round(new Date().getTime() - startTime*1000);
+
+		if (status != 'Running') {
+			set({ timeElapsed: 0, multiplier: '0' });
+
+			if (gameRunTimer) {
+				clearInterval(gameRunTimer);
+				gameRunTimer = null;
+			}
+		} else {
+			set({
+				timeElapsed,
+				multiplier: elapsedToMultiplier(timeElapsed)
+			});
+		}
+	};
+
 	socket.on('connect', () => {
 		console.log('Socket connected');
 		set({ isConnected: true });
@@ -88,7 +118,11 @@ export const useGameStore = create<GameState>((set, get) => {
 
 	socket.on('GameWaiting', (params: GameWaitingEventParams) => {
 		console.log('Game in waiting state')
-		set({ startTime: params.startTime });
+		set({
+			status: 'Waiting',
+			startTime: params.startTime
+		});
+
 		if (gameWaitTimer) {
 			clearInterval(gameWaitTimer);
 			gameWaitTimer = null;
@@ -96,9 +130,29 @@ export const useGameStore = create<GameState>((set, get) => {
 		setInterval(gameWaiter, 1000);
 	});
 
+	socket.on('GameRunning', (params: GameRunningEventParams) => {
+		console.log('Game in running state')
+
+		set({
+			startTime: params.startTime,
+			status: 'Running'
+		});
+
+		if (gameWaitTimer) {
+			clearInterval(gameWaitTimer);
+			gameWaitTimer = null;
+		}
+		if (gameRunTimer) {
+			clearInterval(gameRunTimer);
+			gameRunTimer = null;
+		}
+
+		setInterval(gameRunner, 10);
+	});
+
 	socket.on('BetList', (params: BetListEventParams) => {
 		console.log('Received bet list')
-		console.log(params);
+
 		set({
 			players: params.players,
 			waiting: params.waiting
@@ -125,7 +179,7 @@ export const useGameStore = create<GameState>((set, get) => {
 
 			socket.emit('cancelBet');
 		},
-	}
+	};
 
 	return {
 		...initialState,
