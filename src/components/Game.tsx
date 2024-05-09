@@ -63,7 +63,10 @@ function render(
 
 	context.restore();
 
-	drawMultiplier(context, gameState.multiplier);
+	if (gameState.status == 'Waiting')
+		drawCountdown(context, gameState.timeRemaining);
+	else
+		drawMultiplier(context, gameState.multiplier);
 }
 
 function drawMultiplier(
@@ -83,6 +86,18 @@ function drawMultiplier(
 
 	context.font = '220px Arial';
 	const text = `${multiplier}x`;
+	const textWidth = context.measureText(text).width;
+	context.fillText(text, canvas.width / 2 - textWidth / 2, canvas.height / 2);
+}
+
+function drawCountdown(
+	context: CanvasRenderingContext2D,
+	timeRemaining: number,
+) {
+	const canvas = context.canvas;
+
+	context.font = '220px Arial';
+	const text = `Launch in ${timeRemaining} secs`;
 	const textWidth = context.measureText(text).width;
 	context.fillText(text, canvas.width / 2 - textWidth / 2, canvas.height / 2);
 }
