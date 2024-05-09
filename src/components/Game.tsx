@@ -14,7 +14,7 @@ let rocketImage: HTMLImageElement;
 let explodeImage: HTMLImageElement;
 let parachuteImage: HTMLImageElement;
 
-if (window !== undefined) {
+if (typeof window !== 'undefined') {
 	rocketImage = new Image();
 	rocketImage.src = 'rocket.svg';
 
