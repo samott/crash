@@ -127,7 +127,8 @@ export const useGameStore = create<GameState>((set, get) => {
 		console.log('Game in waiting state')
 		set({
 			status: 'Waiting',
-			startTime: params.startTime
+			startTime: params.startTime,
+			timeElapsed: 0,
 		});
 
 		if (gameWaitTimer) {
