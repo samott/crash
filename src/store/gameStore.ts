@@ -101,8 +101,6 @@ export const useGameStore = create<GameState>((set, get) => {
 		const timeElapsed = Math.round(new Date().getTime() - startTime*1000);
 
 		if (status != 'Running') {
-			set({ timeElapsed: 0, multiplier: '0' });
-
 			if (gameRunTimer) {
 				clearInterval(gameRunTimer);
 				gameRunTimer = null;
