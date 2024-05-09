@@ -18,7 +18,7 @@ createWeb3Modal({
 		name: 'Polygon',
 		currency: 'MATIC',
 		explorerUrl: 'https://polygonscan.com',
-		rpcUrl: 'https://polycon-rpc.com',
+		rpcUrl: 'https://polygon-rpc.com',
 	}],
 	projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID!,
 });
