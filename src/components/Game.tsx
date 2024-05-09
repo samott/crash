@@ -170,7 +170,7 @@ export default function Game() {
 		return () => cancelAnimationFrame(frame);
 	}, [context, gameState]);
 
-	return <>
+	return (
 		<canvas className={styles.Game} ref={canvasRef}></canvas>
-	</>;
+	);
 }
