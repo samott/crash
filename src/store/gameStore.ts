@@ -147,7 +147,7 @@ export const useGameStore = create<GameState>((set, get) => {
 			gameRunTimer = null;
 		}
 
-		setInterval(gameRunner, 10);
+		setInterval(gameRunner, 5);
 	});
 
 	socket.on('BetList', (params: BetListEventParams) => {
