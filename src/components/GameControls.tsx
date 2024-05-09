@@ -24,8 +24,14 @@ const balances: Record<string, string> = {
 	'btc': '0.01',
 };
 
-const getButtonText = (gameStatus: GameStatus, hasBet: boolean) : string => {
-	if (gameStatus == 'Waiting') {
+const getButtonText = (
+	gameStatus: GameStatus,
+	hasBet: boolean,
+	isConnected: boolean,
+) : string => {
+	if (!isConnected) {
+		return 'Connecting...';
+	} else if (gameStatus == 'Waiting') {
 		if (hasBet) {
 			return 'Cancel bet';
 		} else {
@@ -47,12 +53,13 @@ export default function GameControls() {
 
 	const hasBet = useGameStore((game : GameState) => game.hasBet);
 	const gameStatus = useGameStore((game : GameState) => game.status);
+	const isConnected = useGameStore((game : GameState) => game.isConnected);
 
 	const { placeBet } = useGameStore((game : GameState) => game.actions);
 
-	const haveValidBet = /^[0-9]+(\.?[0-9])*$/.test(betAmount);
+	const haveValidBet = /^[0-9]+(\.?[0-9])*$/.test(betAmount) && parseFloat(betAmount);
 
-	const buttonText = getButtonText(gameStatus, hasBet);
+	const buttonText = getButtonText(gameStatus, hasBet, isConnected);
 
 	const handleChangeBetAmount = (amount: string) => {
 		setBetAmount(amount);
@@ -94,7 +101,7 @@ export default function GameControls() {
 			<CardFooter>
 				<Button
 					onClick={handleButtonClick}
-					disabled={!haveValidBet}
+					disabled={!haveValidBet || !isConnected}
 				>
 					{buttonText}
 				</Button>
