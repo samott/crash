@@ -6,7 +6,12 @@ import { create } from "zustand";
 
 import { elapsedToMultiplier } from '../lib/utils';
 
-export type GameStatus = 'Unknown' | 'Waiting' | 'Running' | 'Stopped';
+export type GameStatus =
+	'Unknown'
+	| 'Waiting'
+	| 'Running'
+	| 'Stopped'
+	| 'Crashed';
 
 export type Bet = {
 	wallet: string;
@@ -55,6 +60,10 @@ type GameWaitingEventParams = {
 };
 
 type GameRunningEventParams = {
+	startTime: number;
+};
+
+type GameCrashedEventParams = {
 	startTime: number;
 };
 
@@ -148,6 +157,23 @@ export const useGameStore = create<GameState>((set, get) => {
 		}
 
 		setInterval(gameRunner, 5);
+	});
+
+	socket.on('GameCrashed', (params: GameCrashedEventParams) => {
+		console.log('Game in crashed state')
+
+		set({
+			status: 'Crashed'
+		});
+
+		if (gameWaitTimer) {
+			clearInterval(gameWaitTimer);
+			gameWaitTimer = null;
+		}
+		if (gameRunTimer) {
+			clearInterval(gameRunTimer);
+			gameRunTimer = null;
+		}
 	});
 
 	socket.on('BetList', (params: BetListEventParams) => {
