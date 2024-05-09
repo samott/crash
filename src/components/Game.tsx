@@ -123,7 +123,6 @@ function drawRocket(
 	const d2 = curveFunction((timeElapsed + 10)/1000);
 	const slope = (d2 - d1)/10;
 	const angle = -Math.atan(slope) + 2*Math.PI/4;
-	console.log("slope=", slope, "angle=",angle * 360/(2*Math.PI));
 
 	context.translate(x - rocketWidth/2, y - rocketHeight/2);
 	context.rotate(angle);
