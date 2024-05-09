@@ -10,14 +10,20 @@ const height = 2000;
 const coeffB = 0.5;
 const coeffA = height*0.16;
 
-const rocketImage = new Image();
-rocketImage.src = 'rocket.svg';
+let rocketImage: HTMLImageElement;
+let explodeImage: HTMLImageElement;
+let parachuteImage: HTMLImageElement;
 
-const explodeImage = new Image();
-explodeImage.src = 'explode.svg';
+if (window !== undefined) {
+	rocketImage = new Image();
+	rocketImage.src = 'rocket.svg';
 
-const parachuteImage = new Image();
-parachuteImage.src = 'parachute.svg'
+	explodeImage = new Image();
+	explodeImage.src = 'explode.svg';
+
+	parachuteImage = new Image();
+	parachuteImage.src = 'parachute.svg'
+}
 
 const rocketWidth = 220;
 const rocketHeight = 220;
@@ -137,8 +143,8 @@ function drawCrashedRocket(
 	x: number,
 	y: number,
 ) {
-	context.translate(x, y);
-	context.drawImage(explodeImage, -20, -10, rocketWidth, rocketHeight);
+	context.translate(x - rocketWidth/2, y - rocketWidth/2);
+	context.drawImage(explodeImage, 0, 0, rocketWidth, rocketHeight);
 }
 
 export default function Game() {
