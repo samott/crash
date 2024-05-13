@@ -28,3 +28,7 @@ Config values are in `.env`.
 ```bash
 npm run dev
 ```
+
+## Preview
+
+![Crash Screenshot](docs/crash.png)
