@@ -21,6 +21,8 @@ import { currencies } from '../lib/currencies';
 
 import CurrencyList from './CurrencyList';
 
+import styles from '../styles/components/GameControls.module.css';
+
 const balances: Record<string, string> = {
 	'eth': '0.05',
 	'btc': '0.01',
@@ -82,6 +84,7 @@ export default function GameControls() {
 				<Button
 					onClick={handleButtonClick}
 					disabled={!haveValidBet || !isConnected}
+					className={styles.BetButton}
 				>
 					{buttonText}
 				</Button>
