@@ -10,7 +10,9 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 
-import { useGameStore, GameState, GameStatus } from '../store/gameStore';
+import { useGameStore, GameState } from '../store/gameStore';
+
+import { getButtonText } from '../lib/utils';
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -24,38 +26,16 @@ const balances: Record<string, string> = {
 	'btc': '0.01',
 };
 
-const getButtonText = (
-	gameStatus: GameStatus,
-	hasBet: boolean,
-	isConnected: boolean,
-) : string => {
-	if (!isConnected) {
-		return 'Connecting...';
-	} else if (gameStatus == 'Waiting') {
-		if (hasBet) {
-			return 'Cancel bet';
-		} else {
-			return 'Place bet';
-		}
-	} else {
-		if (hasBet) {
-			return 'Cash out';
-		} else {
-			return 'Place bet (next round)';
-		}
-	}
-}
-
 export default function GameControls() {
 	const [betAmount, setBetAmount] = useState<string>('0');
 	const [autoCashOut, setAutoCashOut] = useState<string>('0');
 	const [currency, setCurrency] = useState<string>(currencies[0].id);
 
-	const hasBet = useGameStore((game : GameState) => game.hasBet);
-	const gameStatus = useGameStore((game : GameState) => game.status);
-	const isConnected = useGameStore((game : GameState) => game.isConnected);
+	const hasBet = useGameStore((game: GameState) => game.hasBet);
+	const gameStatus = useGameStore((game: GameState) => game.status);
+	const isConnected = useGameStore((game: GameState) => game.isConnected);
 
-	const { placeBet } = useGameStore((game : GameState) => game.actions);
+	const { placeBet } = useGameStore((game: GameState) => game.actions);
 
 	const haveValidBet = /^[0-9]+(\.?[0-9])*$/.test(betAmount) && parseFloat(betAmount);
 

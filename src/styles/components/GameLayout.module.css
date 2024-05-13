@@ -1,0 +1,34 @@
+
+@media only screen and (min-width: 64em) {
+	.GameLayout {
+		display: grid;
+		gap: 1em;
+	}
+
+	.GameLayout {
+		grid-template-areas:
+			"crashlist crashlist crashlist"
+			"gamecontrols main main"
+			"betlist betlist betlist";
+	}
+
+	.GameLayout > *:nth-child(1) {
+		grid-area: crashlist;
+	}
+
+	.GameLayout > *:nth-child(2) {
+		grid-area: gamecontrols;
+	}
+
+	.GameLayout > *:nth-child(3) {
+		grid-area: main;
+	}
+}
+
+@media only screen and not(min-width: 64em) {
+	.GameLayout {
+		display: flex;
+		flex-direction: column;
+		gap: 2em;
+	}
+}

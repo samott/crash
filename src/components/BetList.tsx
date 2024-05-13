@@ -1,3 +1,5 @@
+"use client";
+
 import {
 	Table,
 	TableBody,
@@ -16,17 +18,17 @@ import {
 
 import { currencyById } from '../lib/currencies';
 
-import { Bet } from '../store/gameStore';
+import { Bet, useGameStore } from '../store/gameStore';
 
 import { shortenWallet } from '../lib/utils';
 
 export type BetListProps = {
-	bets: Bet[];
 }
 
 export default function BetList({
-	bets
 }: BetListProps) {
+	const bets = useGameStore((gameState) => gameState.waiting);
+
 	return (
 		<Card>
 			<CardHeader>
