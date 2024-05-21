@@ -22,6 +22,15 @@ export type Bet = {
 	winnings: string;
 }
 
+export type CrashedGame = {
+	id: string;
+	duration: number,
+	multiplier: string;
+	players: number;
+	winners: number;
+	startTime: number;
+}
+
 export type GameStateData = {
 	gameId: string|null,
 	status: GameStatus;
@@ -33,9 +42,12 @@ export type GameStateData = {
 	timeRemaining: number;
 	timeElapsed: number;
 	multiplier: string;
+	crashes: CrashedGame[];
 }
 
 export type GameActions = {
+	authenticate: (message: string, signature: string) => void;
+	login: () => void;
 	placeBet: (betAmount: string, autoCashOut: string, currency: string) => void;
 	cancelBet: () => void;
 }
@@ -53,6 +65,7 @@ const initialState : GameStateData = {
 	timeRemaining: 0,
 	timeElapsed: 0,
 	multiplier: '0',
+	crashes: []
 };
 
 type GameWaitingEventParams = {
@@ -64,13 +77,18 @@ type GameRunningEventParams = {
 };
 
 type GameCrashedEventParams = {
-	startTime: number;
+	game: CrashedGame;
 };
 
 type BetListEventParams = {
 	players: Bet[];
 	waiting: Bet[];
 };
+
+type AuthenticateResponseParams = {
+	success: boolean;
+	token: string;
+}
 
 export const useGameStore = create<GameState>((set, get) => {
 	const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL!, {
@@ -161,8 +179,11 @@ export const useGameStore = create<GameState>((set, get) => {
 	socket.on('GameCrashed', (params: GameCrashedEventParams) => {
 		console.log('Game in crashed state')
 
+		const { crashes } = get();
+
 		set({
-			status: 'Crashed'
+			status: 'Crashed',
+			crashes: [...crashes, params.game]
 		});
 
 		if (gameWaitTimer) {
@@ -185,6 +206,33 @@ export const useGameStore = create<GameState>((set, get) => {
 	});
 
 	const actions = {
+		authenticate: (
+			message: string,
+			signature: string
+		) => {
+			console.log('Authenticating...');
+
+			socket.emit('authenticate', {
+				message,
+				signature
+			}, (params: AuthenticateResponseParams) => {
+				if (params?.success && params?.token) {
+					console.log(`Token: ${params.token}`);
+					localStorage.setItem('token', params.token);
+					actions.login();
+				}
+			});
+		},
+
+		login: () => {
+			console.log('Logging in with token...');
+
+			const token = localStorage.getItem('token');
+
+			if (token !== null)
+				socket.emit('login', { token });
+		},
+
 		placeBet: (
 			betAmount: string,
 			autoCashOut: string,
@@ -205,6 +253,11 @@ export const useGameStore = create<GameState>((set, get) => {
 			socket.emit('cancelBet');
 		},
 	};
+
+	const token = localStorage.getItem('token');
+
+	if (token !== null)
+		actions.login();
 
 	return {
 		...initialState,
