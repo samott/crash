@@ -38,6 +38,7 @@ export type GameStateData = {
 	waiting: Bet[];
 	startTime: number;
 	isConnected: boolean;
+	isLoggedIn: boolean;
 	hasBet: boolean;
 	timeRemaining: number;
 	timeElapsed: number;
@@ -61,6 +62,7 @@ const initialState : GameStateData = {
 	waiting: [],
 	startTime: 0,
 	isConnected: false,
+	isLoggedIn: false,
 	hasBet: false,
 	timeRemaining: 0,
 	timeElapsed: 0,
@@ -88,6 +90,10 @@ type BetListEventParams = {
 type AuthenticateResponseParams = {
 	success: boolean;
 	token: string;
+}
+
+type LoginResponseParams = {
+	success: boolean;
 }
 
 export const useGameStore = create<GameState>((set, get) => {
@@ -230,7 +236,12 @@ export const useGameStore = create<GameState>((set, get) => {
 			const token = localStorage.getItem('token');
 
 			if (token !== null)
-				socket.emit('login', { token });
+				socket.emit('login', { token }, (params: LoginResponseParams) => {
+					if (params?.success)
+						set({ isLoggedIn: true });
+					else
+						set({ isLoggedIn: false });
+				});
 		},
 
 		placeBet: (
@@ -254,10 +265,12 @@ export const useGameStore = create<GameState>((set, get) => {
 		},
 	};
 
-	const token = localStorage.getItem('token');
+	if (typeof localStorage !== 'undefined') {
+		const token = localStorage?.getItem('token') ?? null;
 
-	if (token !== null)
-		actions.login();
+		if (token !== null)
+			actions.login();
+	}
 
 	return {
 		...initialState,
