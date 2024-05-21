@@ -16,17 +16,13 @@ import { getButtonText } from '../lib/utils';
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 
 import { currencies } from '../lib/currencies';
 
 import CurrencyList from './CurrencyList';
 
 import styles from '../styles/components/GameControls.module.css';
-
-const balances: Record<string, string> = {
-	'eth': '0.05',
-	'btc': '0.01',
-};
 
 export default function GameControls() {
 	const [betAmount, setBetAmount] = useState<string>('0');
@@ -36,6 +32,7 @@ export default function GameControls() {
 	const hasBet = useGameStore((game: GameState) => game.hasBet);
 	const gameStatus = useGameStore((game: GameState) => game.status);
 	const isConnected = useGameStore((game: GameState) => game.isConnected);
+	const balances = useGameStore((game: GameState) => game.balances);
 
 	const { placeBet } = useGameStore((game: GameState) => game.actions);
 
@@ -62,6 +59,7 @@ export default function GameControls() {
 			</CardHeader>
 
 			<CardContent>
+				<Label>Bet Amount</Label>
 				<Input
 					placeholder="Bet amount"
 					type="number"
@@ -69,6 +67,7 @@ export default function GameControls() {
 					onChange={(e) => handleChangeBetAmount(e.target.value)}
 					value={betAmount}
 				/>
+				<Label>Auto Cashout</Label>
 				<Input
 					placeholder="Auto cashout"
 					type="number"
@@ -77,6 +76,7 @@ export default function GameControls() {
 					onChange={(e) => handleChangeAutoCashOut(e.target.value)}
 					value={autoCashOut}
 				/>
+				<Label>Currency</Label>
 				<CurrencyList balances={balances} />
 			</CardContent>
 

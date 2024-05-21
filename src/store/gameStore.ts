@@ -44,6 +44,7 @@ export type GameStateData = {
 	timeElapsed: number;
 	multiplier: string;
 	crashes: CrashedGame[];
+	balances: Record<string, string>;
 }
 
 export type GameActions = {
@@ -67,7 +68,8 @@ const initialState : GameStateData = {
 	timeRemaining: 0,
 	timeElapsed: 0,
 	multiplier: '0',
-	crashes: []
+	crashes: [],
+	balances: {},
 };
 
 type GameWaitingEventParams = {
@@ -86,6 +88,10 @@ type BetListEventParams = {
 	players: Bet[];
 	waiting: Bet[];
 };
+
+type InitBalancesEventParams = {
+	balances: Record<string, string>;
+}
 
 type AuthenticateResponseParams = {
 	success: boolean;
@@ -208,7 +214,12 @@ export const useGameStore = create<GameState>((set, get) => {
 		set({
 			players: params.players,
 			waiting: params.waiting
-		} = params);
+		});
+	});
+
+	socket.on('InitBalances', (params: InitBalancesEventParams) => {
+		console.log('Received balance list')
+		set({ balances: params.balances });
 	});
 
 	const actions = {
