@@ -6,6 +6,10 @@
 	justify-content: space-between;
 }
 
+.PageHeader h1 {
+	font-size: 160%;
+}
+
 .WalletButton {
 	display: flex;
 	align-items: center;

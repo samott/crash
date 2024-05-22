@@ -1,3 +1,5 @@
+import DepositDialog from './DepositDialog';
+
 import styles from '../styles/components/PageHeader.module.css';
 
 export default function PageHeader() {
@@ -8,6 +10,7 @@ export default function PageHeader() {
 			</div>
 
 			<div className={styles.WalletButton}>
+				<DepositDialog />
 				<w3m-button />
 			</div>
 		</header>
