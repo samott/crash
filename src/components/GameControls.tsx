@@ -11,8 +11,7 @@ import {
 } from "@/components/ui/card";
 
 import { useGameStore, GameState } from '../store/gameStore';
-
-import { getButtonText } from '../lib/utils';
+import useWalletAuth from '../hooks/useWalletAuth';
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -25,6 +24,8 @@ import CurrencyList from './CurrencyList';
 import styles from '../styles/components/GameControls.module.css';
 
 export default function GameControls() {
+	const walletAuth = useWalletAuth();
+
 	const [betAmount, setBetAmount] = useState<string>('0');
 	const [autoCashOut, setAutoCashOut] = useState<string>('0');
 	const [currency, setCurrency] = useState<string>(currencies[0].id);
@@ -32,13 +33,12 @@ export default function GameControls() {
 	const hasBet = useGameStore((game: GameState) => game.hasBet);
 	const gameStatus = useGameStore((game: GameState) => game.status);
 	const isConnected = useGameStore((game: GameState) => game.isConnected);
+	const isLoggedIn = useGameStore((game: GameState) => game.isLoggedIn);
 	const balances = useGameStore((game: GameState) => game.balances);
 
 	const { placeBet } = useGameStore((game: GameState) => game.actions);
 
 	const haveValidBet = /^[0-9]+(\.?[0-9])*$/.test(betAmount) && parseFloat(betAmount);
-
-	const buttonText = getButtonText(gameStatus, hasBet, isConnected);
 
 	const handleChangeBetAmount = (amount: string) => {
 		setBetAmount(amount);
@@ -49,7 +49,56 @@ export default function GameControls() {
 	}
 
 	const handleButtonClick = () => {
+		if (!isConnected || !walletAuth.isWalletConnected)
+			return;
+
+		if (!isLoggedIn && walletAuth.canSignIn) {
+			walletAuth.signIn();
+			return;
+		}
+
+		if (!isLoggedIn)
+			return;
+
 		placeBet(betAmount, autoCashOut, currency);
+	}
+
+	const isButtonDisabled: boolean =
+		!isConnected
+		|| walletAuth.isSigningIn
+		|| (!isLoggedIn && !walletAuth.canSignIn)
+		|| (isLoggedIn && !haveValidBet);
+
+	const getButtonText = () : string => {
+		if (!isConnected)
+			return 'Connecting...';
+
+		if (!walletAuth.isWalletConnected)
+			return 'Connect Wallet';
+
+		if (walletAuth.isSigningIn)
+			return 'Sign message in wallet';
+
+		if (!isLoggedIn) {
+			if (walletAuth.canSignIn)
+				return 'Sign In';
+			else
+				return 'Connect Wallet';
+		}
+
+		if (gameStatus == 'Waiting') {
+			if (hasBet) {
+				return 'Cancel bet';
+			} else {
+				return 'Place bet';
+			}
+		} else {
+			if (hasBet) {
+				return 'Cash out';
+			} else {
+				return 'Place bet (next round)';
+			}
+		}
 	}
 
 	return (
@@ -83,10 +132,10 @@ export default function GameControls() {
 			<CardFooter>
 				<Button
 					onClick={handleButtonClick}
-					disabled={!haveValidBet || !isConnected}
+					disabled={isButtonDisabled}
 					className={styles.BetButton}
 				>
-					{buttonText}
+					{getButtonText()}
 				</Button>
 			</CardFooter>
 		</Card>
