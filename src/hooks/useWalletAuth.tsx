@@ -56,6 +56,7 @@ export default function useWalletAuth() : UseWalletAuthResult {
 
 	async function signIn() {
 		setIsSigningIn(true);
+
 		try {
 			const nonce = await getNonce();
 			const { message, signature } = await acquireSignature(nonce);
