@@ -252,13 +252,14 @@ export const useGameStore = create<GameState>((set, get) => {
 
 			const token = localStorage.getItem('token');
 
-			if (token !== null)
+			if (token !== null) {
 				socket.emit('login', { token }, (params: LoginResponseParams) => {
 					if (params?.success)
 						set({ isLoggedIn: true });
 					else
 						set({ isLoggedIn: false });
 				});
+			}
 		},
 
 		placeBet: (
