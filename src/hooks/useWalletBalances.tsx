@@ -10,11 +10,12 @@ import erc20Abi from '../abis/erc20.json';
 
 import { currencies, coinContracts } from '../lib/currencies';
 
-export type WalletBalances = Record<string, string>;
+export type WalletAmounts = Record<string, string>;
 
 export type UseWalletBalanceResult = {
 	isLoading: boolean;
-	balances: WalletBalances;
+	balances: WalletAmounts;
+	allowances: WalletAmounts;
 }
 
 export type CurrencyContract = {
@@ -26,14 +27,36 @@ const contractDecimals = Object.fromEntries(
 	currencies.map((currency) => [currency.id, currency.contractDecimals])
 );
 
+const crashContract = '0x1111111111111111111111111111111111111111';
+
+const queryContract = async (
+	currency: string,
+	contract: Contract,
+	method: string,
+	args: any[]
+): Promise<[string, string]> => {
+	const balance = await contract[method](...args);
+
+	const strBalance = formatUnits(
+		balance,
+		contractDecimals[currency]
+	);
+
+	return [
+		currency,
+		strBalance,
+	];
+}
+
 export default function useWalletBalances() : UseWalletBalanceResult {
 	const { address, chainId, isConnected } = useWeb3ModalAccount();
 	const { walletProvider } = useWeb3ModalProvider();
 
-	const [balances, setBalances] = useState<WalletBalances>({});
+	const [balances, setBalances] = useState<WalletAmounts>({});
+	const [allowances, setAllowances] = useState<WalletAmounts>({});
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 
-	async function loadBalances() : Promise<WalletBalances> {
+	async function loadBalances() {
 		if (!isConnected || !walletProvider)
 			throw new Error('Wallet not connected or no provider');
 
@@ -52,25 +75,26 @@ export default function useWalletBalances() : UseWalletBalanceResult {
 				})
 			);
 
-		const getBalance = async (currency: string, contract: Contract): Promise<[string, string]> => {
-			const balance = await contract.balanceOf(address);
-
-			const strBalance = formatUnits(
-				balance,
-				contractDecimals[currency]
-			);
-
-			return [
-				currency,
-				strBalance,
-			];
-		}
-
-		const data = await Promise.all(
-			contracts.map((cc) => getBalance(cc.currency, cc.contract))
+		const balanceData = await Promise.all(
+			contracts.map((cc) => queryContract(
+				cc.currency,
+				cc.contract,
+				'balanceOf',
+				[ address ]
+			))
 		);
 
-		return Object.fromEntries(data);
+		const allowanceData = await Promise.all(
+			contracts.map((cc) => queryContract(
+				cc.currency,
+				cc.contract,
+				'allowance',
+				[ address, crashContract ]
+			))
+		);
+
+		setBalances(Object.fromEntries(balanceData));
+		setAllowances(Object.fromEntries(allowanceData));
 	}
 
 	useEffect(() => {
@@ -81,8 +105,7 @@ export default function useWalletBalances() : UseWalletBalanceResult {
 			setIsLoading(true);
 
 			try {
-				const newBalances = await loadBalances();
-				setBalances(newBalances);
+				await loadBalances();
 			} catch (e) {
 				console.error(e);
 			}
@@ -93,6 +116,7 @@ export default function useWalletBalances() : UseWalletBalanceResult {
 
 	return {
 		balances,
+		allowances,
 		isLoading
 	};
 }
