@@ -50,6 +50,7 @@ export type GameStateData = {
 export type GameActions = {
 	authenticate: (message: string, signature: string) => void;
 	login: () => void;
+	getNonce: () => Promise<string>;
 	placeBet: (betAmount: string, autoCashOut: string, currency: string) => void;
 	cancelBet: () => void;
 }
@@ -105,6 +106,10 @@ type AuthenticateResponseParams = {
 
 type LoginResponseParams = {
 	success: boolean;
+}
+
+type NonceResponse = {
+	nonce: string;
 }
 
 export const useGameStore = create<GameState>((set, get) => {
@@ -275,6 +280,16 @@ export const useGameStore = create<GameState>((set, get) => {
 						set({ isLoggedIn: false });
 				});
 			}
+		},
+
+		getNonce: async (): Promise<string> => {
+			const response = await fetch(process.env.NEXT_PUBLIC_REST_URL! + '/nonce');
+			const result = await response.json() as NonceResponse;
+
+			if (!result?.nonce)
+				throw new Error('Failed to query nonce API');
+
+			return result?.nonce;
 		},
 
 		placeBet: (
