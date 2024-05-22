@@ -145,6 +145,12 @@ export const useGameStore = create<GameState>((set, get) => {
 
 	socket.on('connect', () => {
 		console.log('Socket connected');
+
+		const token = localStorage?.getItem('token') ?? null;
+
+		if (token !== null)
+			actions.login();
+
 		set({ isConnected: true });
 	});
 
@@ -275,13 +281,6 @@ export const useGameStore = create<GameState>((set, get) => {
 			socket.emit('cancelBet');
 		},
 	};
-
-	if (typeof localStorage !== 'undefined') {
-		const token = localStorage?.getItem('token') ?? null;
-
-		if (token !== null)
-			actions.login();
-	}
 
 	return {
 		...initialState,
