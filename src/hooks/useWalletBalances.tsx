@@ -34,8 +34,6 @@ export default function useWalletBalances() : UseWalletBalanceResult {
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 
 	async function loadBalances() : Promise<WalletBalances> {
-		const results: WalletBalances = {};
-
 		if (!isConnected || !walletProvider)
 			throw new Error('Wallet not connected or no provider');
 
@@ -45,7 +43,6 @@ export default function useWalletBalances() : UseWalletBalanceResult {
 			throw new Error(`Unsupported chain ID: ${hexChainId}`);
 
 		const provider = new BrowserProvider(walletProvider);
-		const signer = await provider.getSigner()
 
 		const contracts: CurrencyContract[] = 
 			Object.keys(coinContracts[hexChainId]).map(
