@@ -93,6 +93,11 @@ type InitBalancesEventParams = {
 	balances: Record<string, string>;
 }
 
+type UpdateBalancesEventParams = {
+	currency: string;
+	balance: string;
+}
+
 type AuthenticateResponseParams = {
 	success: boolean;
 	token: string;
@@ -225,7 +230,17 @@ export const useGameStore = create<GameState>((set, get) => {
 
 	socket.on('InitBalances', (params: InitBalancesEventParams) => {
 		console.log('Received balance list')
-		set({ balances: params.balances });
+		set({ balances: params?.balances ?? {} });
+	});
+
+	socket.on('UpdateBalance', (params: UpdateBalancesEventParams) => {
+		console.log('Received balance update')
+		set({
+			balances: {
+				...get().balances ?? {},
+				[params.currency]: params.balance
+			}
+		});
 	});
 
 	const actions = {
