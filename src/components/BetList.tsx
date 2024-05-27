@@ -1,5 +1,9 @@
 "use client";
 
+import Decimal from 'decimal.js';
+
+import { Label } from '@/components/ui/label';
+
 import {
 	Table,
 	TableBody,
@@ -25,9 +29,51 @@ import { shortenWallet } from '../lib/utils';
 export type BetListProps = {
 }
 
-export default function BetList({
-}: BetListProps) {
-	const bets = useGameStore((gameState) => gameState.waiting);
+const renderCashOut = (bet: Bet): string => {
+	if (bet.cashOut != '0.00')
+		return `${bet.cashOut}x`;
+
+	if (bet.autoCashOut != '0.00')
+		return `${bet.autoCashOut}x`;
+
+	return '-';
+}
+
+const renderWinnings = (bet: Bet): string => {
+	if (!bet.isCashedOut)
+		return '-';
+
+	return new Decimal(bet.betAmount).mul(bet.cashOut).toString();
+}
+
+export type BetItemProps = {
+	bet: Bet;
+	isWaiting: boolean;
+}
+
+export function BetItem({ bet, isWaiting }: BetItemProps) {
+	return (
+		<TableRow key={bet.wallet + '_' + (isWaiting ? '_wait' : '_play')}>
+			<TableCell className="font-medium whitespace-nowrap">
+				{shortenWallet(bet.wallet ?? 'User')}
+				{isWaiting ? ' ⌛' : ''}
+			</TableCell>
+			<TableCell>
+				{bet.betAmount}{" "}
+				{currencyById[bet.currency]?.units ?? bet.currency.toUpperCase()}
+			</TableCell>
+			<TableCell>{renderCashOut(bet)}</TableCell>
+			<TableCell className="text-right">
+				{renderWinnings(bet)}{" "}
+				{currencyById[bet.currency]?.units ?? bet.currency.toUpperCase()}
+			</TableCell>
+		</TableRow>
+	);
+}
+
+export default function BetList({}: BetListProps) {
+	const players = useGameStore((gameState) => gameState.players);
+	const waiting = useGameStore((gameState) => gameState.waiting);
 
 	return (
 		<Card>
@@ -46,20 +92,8 @@ export default function BetList({
 						</TableRow>
 					</TableHeader>
 					<TableBody>
-						{bets.map((bet) => (
-							<TableRow key={bet.wallet}>
-								<TableCell className="font-medium">{shortenWallet(bet.wallet ?? 'User')}</TableCell>
-								<TableCell>
-									{bet.amount}{" "}
-									{currencyById[bet.currency]?.units ?? bet.currency.toUpperCase()}
-								</TableCell>
-								<TableCell>{bet.cashOut ? `${bet.cashOut}x` : '-'}</TableCell>
-								<TableCell className="text-right">
-									{bet.winnings}{" "}
-									{currencyById[bet.currency]?.units ?? bet.currency.toUpperCase()}
-								</TableCell>
-							</TableRow>
-						))}
+						{players.map((bet) => <BetItem bet={bet} isWaiting={false} />)}
+						{waiting.map((bet) => <BetItem bet={bet} isWaiting={true} />)}
 					</TableBody>
 				</Table>
 			</CardContent>
