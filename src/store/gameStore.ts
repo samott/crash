@@ -2,6 +2,8 @@
 
 import { io } from "socket.io-client";
 
+import { jwtDecode } from 'jwt-decode';
+
 import { create } from "zustand";
 
 import { elapsedToMultiplier } from '../lib/utils';
@@ -13,12 +15,18 @@ export type GameStatus =
 	| 'Stopped'
 	| 'Crashed';
 
+export type JwtToken = {
+	exp: number;
+	nbf: number;
+	wallet: string;
+}
+
 export type Bet = {
 	wallet: string;
 	amount: string;
 	currency: string;
 	cashOut: string;
-	cashedOut: boolean;
+	isCashedOut: boolean;
 	winnings: string;
 }
 
@@ -39,12 +47,15 @@ export type GameStateData = {
 	startTime: number;
 	isConnected: boolean;
 	isLoggedIn: boolean;
-	hasBet: boolean;
+	isWaiting: boolean;
+	isPlaying: boolean
+	isCashedOut: boolean;
 	timeRemaining: number;
 	timeElapsed: number;
 	multiplier: string;
 	crashes: CrashedGame[];
 	balances: Record<string, string>;
+	wallet: string|null;
 }
 
 export type GameActions = {
@@ -52,6 +63,7 @@ export type GameActions = {
 	login: () => void;
 	getNonce: () => Promise<string>;
 	placeBet: (betAmount: string, autoCashOut: string, currency: string) => void;
+	cashOut: () => void;
 	cancelBet: () => void;
 }
 
@@ -65,12 +77,15 @@ const initialState : GameStateData = {
 	startTime: 0,
 	isConnected: false,
 	isLoggedIn: false,
-	hasBet: false,
+	isWaiting: false,
+	isPlaying: false,
+	isCashedOut: false,
 	timeRemaining: 0,
 	timeElapsed: 0,
 	multiplier: '0',
 	crashes: [],
 	balances: {},
+	wallet: null,
 };
 
 type GameWaitingEventParams = {
@@ -97,6 +112,11 @@ type InitBalancesEventParams = {
 type UpdateBalancesEventParams = {
 	currency: string;
 	balance: string;
+}
+
+type PlayerWonEventParams = {
+	wallet: string;
+	multiplier: string;
 }
 
 type AuthenticateResponseParams = {
@@ -161,6 +181,7 @@ export const useGameStore = create<GameState>((set, get) => {
 		if (token !== null)
 			actions.login();
 
+		const decoded = jwtDecode(token)
 		set({ isConnected: true });
 	});
 
@@ -227,10 +248,35 @@ export const useGameStore = create<GameState>((set, get) => {
 	socket.on('BetList', (params: BetListEventParams) => {
 		console.log('Received bet list')
 
+		const { wallet } = get();
+		const playing = params.players.find((player) => player.wallet == wallet);
+		const waiting = params.waiting.find((player) => player.wallet == wallet);
+		const playerInList = playing ?? waiting;
+
 		set({
 			players: params.players,
-			waiting: params.waiting
+			waiting: params.waiting,
+			isWaiting: !!waiting,
+			isPlaying: !!playing,
+			isCashedOut: !!playerInList?.isCashedOut,
 		});
+	});
+
+	socket.on('PlayerWon', (params: PlayerWonEventParams) => {
+		console.log('Received player won event')
+
+		const { players, wallet } = get();
+		const index = players.findIndex((player) => player.wallet == params.wallet);
+
+		if (index != -1) {
+			players[index].isCashedOut = true;
+
+			if (wallet == params.wallet) {
+				set({ players, isCashedOut: true });
+			} else {
+				set({ players });
+			}
+		}
 	});
 
 	socket.on('InitBalances', (params: InitBalancesEventParams) => {
@@ -273,6 +319,13 @@ export const useGameStore = create<GameState>((set, get) => {
 			const token = localStorage.getItem('token');
 
 			if (token !== null) {
+				const decoded: JwtToken = jwtDecode(token);
+
+				if (!decoded.wallet)
+					return;
+
+				set({ wallet: decoded.wallet });
+
 				socket.emit('login', { token }, (params: LoginResponseParams) => {
 					if (params?.success)
 						set({ isLoggedIn: true });
@@ -306,9 +359,13 @@ export const useGameStore = create<GameState>((set, get) => {
 			});
 		},
 
+		cashOut: () => {
+			console.log(`Cashing out...`);
+			socket.emit('cashOut');
+		},
+
 		cancelBet: () => {
 			console.log(`Cancelling bet...`);
-
 			socket.emit('cancelBet');
 		},
 	};

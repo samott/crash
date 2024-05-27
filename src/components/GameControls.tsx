@@ -30,13 +30,19 @@ export default function GameControls() {
 	const [autoCashOut, setAutoCashOut] = useState<string>('0');
 	const [currency, setCurrency] = useState<string>(currencies[0].id);
 
-	const hasBet = useGameStore((game: GameState) => game.hasBet);
+	const isWaiting = useGameStore((game: GameState) => game.isWaiting);
+	const isPlaying = useGameStore((game: GameState) => game.isPlaying);
+	const isCashedOut = useGameStore((game: GameState) => game.isCashedOut);
 	const gameStatus = useGameStore((game: GameState) => game.status);
 	const isConnected = useGameStore((game: GameState) => game.isConnected);
 	const isLoggedIn = useGameStore((game: GameState) => game.isLoggedIn);
 	const balances = useGameStore((game: GameState) => game.balances);
 
-	const { placeBet } = useGameStore((game: GameState) => game.actions);
+	const {
+		placeBet,
+		cancelBet,
+		cashOut
+	} = useGameStore((game: GameState) => game.actions);
 
 	const haveValidBet = /^[0-9]+(\.?[0-9])*$/.test(betAmount) && parseFloat(betAmount);
 
@@ -60,7 +66,16 @@ export default function GameControls() {
 		if (!isLoggedIn)
 			return;
 
-		placeBet(betAmount, autoCashOut, currency);
+		if (isWaiting) {
+			cancelBet();
+			return;
+		}
+
+		if (isPlaying && !isCashedOut) {
+			cashOut();
+		} else {
+			placeBet(betAmount, autoCashOut, currency);
+		}
 	}
 
 	const isButtonDisabled: boolean =
@@ -86,18 +101,18 @@ export default function GameControls() {
 				return 'Connect Wallet';
 		}
 
-		if (gameStatus == 'Waiting') {
-			if (hasBet) {
-				return 'Cancel bet';
-			} else {
-				return 'Place bet';
-			}
-		} else {
-			if (hasBet) {
+		if (isWaiting) {
+			return 'Cancel bet';
+		}
+
+		if (gameStatus == 'Running') {
+			if (isPlaying && !isCashedOut) {
 				return 'Cash out';
 			} else {
 				return 'Place bet (next round)';
 			}
+		} else {
+			return 'Place bet';
 		}
 	}
 
