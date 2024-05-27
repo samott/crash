@@ -23,8 +23,9 @@ export type JwtToken = {
 
 export type Bet = {
 	wallet: string;
-	amount: string;
+	betAmount: string;
 	currency: string;
+	autoCashOut: string;
 	cashOut: string;
 	isCashedOut: boolean;
 	winnings: string;
@@ -269,12 +270,15 @@ export const useGameStore = create<GameState>((set, get) => {
 		const index = players.findIndex((player) => player.wallet == params.wallet);
 
 		if (index != -1) {
-			players[index].isCashedOut = true;
+			const newPlayers = [...players];
+
+			newPlayers[index].isCashedOut = true;
+			newPlayers[index].cashOut = params.multiplier;
 
 			if (wallet == params.wallet) {
-				set({ players, isCashedOut: true });
+				set({ players: newPlayers, isCashedOut: true });
 			} else {
-				set({ players });
+				set({ players: newPlayers });
 			}
 		}
 	});
