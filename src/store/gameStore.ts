@@ -182,7 +182,6 @@ export const useGameStore = create<GameState>((set, get) => {
 		if (token !== null)
 			actions.login();
 
-		const decoded = jwtDecode(token)
 		set({ isConnected: true });
 	});
 
