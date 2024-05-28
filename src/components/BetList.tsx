@@ -53,7 +53,7 @@ export type BetItemProps = {
 
 export function BetItem({ bet, isWaiting }: BetItemProps) {
 	return (
-		<TableRow key={bet.wallet + '_' + (isWaiting ? '_wait' : '_play')}>
+		<TableRow>
 			<TableCell className="font-medium whitespace-nowrap">
 				{shortenWallet(bet.wallet ?? 'User')}
 				{isWaiting ? ' ⌛' : ''}
@@ -92,8 +92,18 @@ export default function BetList({}: BetListProps) {
 						</TableRow>
 					</TableHeader>
 					<TableBody>
-						{players.map((bet) => <BetItem bet={bet} isWaiting={false} />)}
-						{waiting.map((bet) => <BetItem bet={bet} isWaiting={true} />)}
+						{players.map((bet) =>
+							<BetItem
+								bet={bet}
+								isWaiting={false}
+								key={bet.wallet + '_wait'}
+							/>)}
+						{waiting.map((bet) =>
+							<BetItem
+								bet={bet}
+								isWaiting={true}
+								key={bet.wallet + '_play'}
+							/>)}
 					</TableBody>
 				</Table>
 			</CardContent>
