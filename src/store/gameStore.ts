@@ -38,6 +38,7 @@ export type CrashedGame = {
 	players: number;
 	winners: number;
 	startTime: number;
+	hash: string;
 }
 
 export type GameStateData = {
@@ -105,6 +106,10 @@ type GameCrashedEventParams = {
 type BetListEventParams = {
 	players: Bet[];
 	waiting: Bet[];
+};
+
+type RecentGameListEventParams = {
+	games: CrashedGame[];
 };
 
 type InitBalancesEventParams = {
@@ -240,6 +245,7 @@ export const useGameStore = create<GameState>((set, get) => {
 			clearInterval(gameWaitTimer);
 			gameWaitTimer = null;
 		}
+
 		if (gameRunTimer) {
 			clearInterval(gameRunTimer);
 			gameRunTimer = null;
@@ -261,6 +267,11 @@ export const useGameStore = create<GameState>((set, get) => {
 			isPlaying: !!playing,
 			isCashedOut: !!playerInList?.isCashedOut,
 		});
+	});
+
+	socket.on('RecentGameList', (params: RecentGameListEventParams) => {
+		console.log('Received recent game list')
+		set({ crashes: params.games ?? [] });
 	});
 
 	socket.on('PlayerWon', (params: PlayerWonEventParams) => {

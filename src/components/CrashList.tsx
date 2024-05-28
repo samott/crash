@@ -1,3 +1,5 @@
+"use client";
+
 import styles from '../styles/components/CrashList.module.css';
 
 import {
@@ -6,41 +8,17 @@ import {
 	HoverCardTrigger,
 } from "@/components/ui/hover-card";
 
-export type CrashedGame = {
-	gameId: string;
-	hash: string;
-	duration: number;
-	multiplier: string;
-	startTime: number;
-	escapees: number;
-	players: number;
-}
+import { useGameStore, CrashedGame } from '../store/gameStore';
 
 export type CrashListProps = {}
 
 export default function CrashList({}: CrashListProps) {
-	const crashes = [{
-		gameId: '86d838fb-1125-11ef-8984-00e04c6804ae',
-		hash: '80348020432',
-		duration: 1000,
-		multiplier: "1.05",
-		startTime: new Date().getTime(),
-		escapees: 1,
-		players: 13,
-	}, {
-		gameId: '86d838fb-1125-11ef-8984-00e04c680422',
-		hash: '80348020432',
-		duration: 1000,
-		multiplier: "1.45",
-		startTime: new Date().getTime(),
-		escapees: 4,
-		players: 6,
-	}];
+	const crashes = useGameStore((gameState) => gameState.crashes);
 
 	return (
 		<div className={styles.CrashList}>
 			{crashes.map((crash: CrashedGame) =>
-				<HoverCard key={crash.gameId}>
+				<HoverCard key={crash.id}>
 					<HoverCardTrigger>
 						<div className={styles.CrashListItem}>
 							{ crash.multiplier }x
@@ -56,8 +34,8 @@ export default function CrashList({}: CrashListProps) {
 							<span>{Number(crash.duration/1000).toFixed(2)} secs</span>
 							<span>Mulitplier:</span>
 							<span>{crash.multiplier}x</span>
-							<span>Escapees:</span>
-							<span>{crash.escapees}/{crash.players}</span>
+							<span>Winners:</span>
+							<span>{crash.winners}/{crash.players}</span>
 						</div>
 					</HoverCardContent>
 				</HoverCard>
