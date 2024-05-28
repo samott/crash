@@ -61,6 +61,7 @@ export type GameStateData = {
 
 export type GameActions = {
 	authenticate: (message: string, signature: string) => void;
+	switchWallet: (newWallet: string|null) => void;
 	login: () => void;
 	getNonce: () => Promise<string>;
 	placeBet: (betAmount: string, autoCashOut: string, currency: string) => void;
@@ -314,6 +315,19 @@ export const useGameStore = create<GameState>((set, get) => {
 					actions.login();
 				}
 			});
+		},
+
+		switchWallet: (newWallet: string|null) => {
+			const { wallet } = get();
+
+			if (wallet && wallet !== newWallet) {
+				console.log('Wallet changed; logging out...');
+
+				set({
+					wallet: null,
+					isLoggedIn: false
+				});
+			}
 		},
 
 		login: () => {

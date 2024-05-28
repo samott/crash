@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import { useWeb3ModalProvider, useWeb3ModalAccount } from '@web3modal/ethers/react';
 import { BrowserProvider } from 'ethers';
@@ -19,9 +19,14 @@ export type UseWalletAuthResult = {
 }
 
 export default function useWalletAuth() : UseWalletAuthResult {
-	const { chainId, isConnected } = useWeb3ModalAccount();
+	const { chainId, isConnected, address } = useWeb3ModalAccount();
 	const { walletProvider } = useWeb3ModalProvider();
-	const { authenticate, getNonce } = useGameStore((gameState: GameState) => gameState.actions);
+
+	const {
+		authenticate,
+		getNonce,
+		switchWallet,
+	} = useGameStore((gameState: GameState) => gameState.actions);
 
 	const [isSigningIn, setIsSigningIn] = useState<boolean>(false);
 
@@ -69,6 +74,10 @@ export default function useWalletAuth() : UseWalletAuthResult {
 	}
 
 	const canSignIn = isConnected && !!walletProvider;
+
+	useEffect(() => {
+		switchWallet(address ?? null);
+	}, [address]);
 
 	return {
 		signIn,
