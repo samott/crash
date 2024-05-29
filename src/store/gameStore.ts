@@ -27,6 +27,7 @@ export type Bet = {
 	currency: string;
 	autoCashOut: string;
 	cashOut: string;
+	cashOutTime: Date;
 	isCashedOut: boolean;
 	winnings: string;
 }
@@ -149,7 +150,7 @@ export const useGameStore = create<GameState>((set, get) => {
 
 	const gameWaiter = () => {
 		const { startTime } = get();
-		const timeRemaining = Math.round(startTime - new Date().getTime()/1000);
+		const timeRemaining = Math.round((startTime - new Date().getTime())/1000);
 
 		if (timeRemaining <= 0) {
 			set({ timeRemaining: 0 });
@@ -165,7 +166,7 @@ export const useGameStore = create<GameState>((set, get) => {
 
 	const gameRunner = () => {
 		const { startTime, status } = get();
-		const timeElapsed = Math.round(new Date().getTime() - startTime*1000);
+		const timeElapsed = Math.round(new Date().getTime() - startTime);
 
 		if (status != 'Running') {
 			if (gameRunTimer) {
@@ -208,11 +209,14 @@ export const useGameStore = create<GameState>((set, get) => {
 			clearInterval(gameWaitTimer);
 			gameWaitTimer = null;
 		}
-		setInterval(gameWaiter, 1000);
+
+		gameWaitTimer = setInterval(gameWaiter, 1000);
 	});
 
 	socket.on('GameRunning', (params: GameRunningEventParams) => {
 		console.log('Game in running state')
+
+		console.log("StartTime latency:", new Date().getTime() - params.startTime);
 
 		set({
 			startTime: params.startTime,
@@ -223,12 +227,13 @@ export const useGameStore = create<GameState>((set, get) => {
 			clearInterval(gameWaitTimer);
 			gameWaitTimer = null;
 		}
+
 		if (gameRunTimer) {
 			clearInterval(gameRunTimer);
 			gameRunTimer = null;
 		}
 
-		setInterval(gameRunner, 5);
+		gameRunTimer = setInterval(gameRunner, 5);
 	});
 
 	socket.on('GameCrashed', (params: GameCrashedEventParams) => {
@@ -238,7 +243,8 @@ export const useGameStore = create<GameState>((set, get) => {
 
 		set({
 			status: 'Crashed',
-			crashes: [...crashes, params.game]
+			crashes: [...crashes, params.game],
+			timeElapsed: params.game.duration,
 		});
 
 		if (gameWaitTimer) {
@@ -285,6 +291,7 @@ export const useGameStore = create<GameState>((set, get) => {
 
 			newPlayers[index].isCashedOut = true;
 			newPlayers[index].cashOut = params.multiplier;
+			newPlayers[index].cashOutTime = new Date();
 
 			if (wallet == params.wallet) {
 				set({ players: newPlayers, isCashedOut: true });
