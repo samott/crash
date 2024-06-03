@@ -96,6 +96,7 @@ function drawCountdown(
 ) {
 	const canvas = context.canvas;
 
+	context.fillStyle = 'rgba(255, 255, 255, 1.0)';
 	context.font = '220px Arial';
 	const text = `Launch in ${timeRemaining} secs`;
 	const textWidth = context.measureText(text).width;
