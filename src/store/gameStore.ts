@@ -243,7 +243,11 @@ export const useGameStore = create<GameState>((set, get) => {
 
 		set({
 			status: 'Crashed',
-			crashes: [...crashes, params.game],
+			crashes: [...(
+				crashes.length <= 30
+					? crashes
+					: crashes.slice(0, 30)
+			), params.game],
 			timeElapsed: params.game.duration,
 		});
 
