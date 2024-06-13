@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@radix-ui/react-checkbox": "^1.0.4",
     "@radix-ui/react-dialog": "^1.0.5",
     "@radix-ui/react-hover-card": "^1.0.7",
     "@radix-ui/react-label": "^2.0.2",
@@ -23,12 +24,14 @@
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.378.0",
     "next": "14.2.3",
+    "next-themes": "^0.3.0",
     "pino-pretty": "^11.0.0",
     "postcss": "^8.4.38",
     "react": "^18",
     "react-dom": "^18",
     "siwe": "^2.3.2",
     "socket.io-client": "^4.7.5",
+    "sonner": "^1.5.0",
     "tailwind-merge": "^2.3.0",
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^0.9.1",
