@@ -7,6 +7,7 @@ export type CurrencyId = 'eth' | 'btc';
 
 export type Currency = {
 	id: CurrencyId;
+	coinId: number;
 	name: string;
 	units: string;
 	icon: StaticImageData;
@@ -17,6 +18,7 @@ export type Currency = {
 export const currencies: Currency[] = [
 	{
 		id: 'eth',
+		coinId: 1,
 		name: 'Ethereum',
 		units: 'ETH',
 		icon:  EthereumIcon,
@@ -25,6 +27,7 @@ export const currencies: Currency[] = [
 	},
 	{
 		id: 'btc',
+		coinId: 2,
 		name: 'Bitcoin',
 		units: 'BTC',
 		icon:  BitcoinIcon,
@@ -33,6 +36,7 @@ export const currencies: Currency[] = [
 	},
 	/*{
 		id: 'usdc',
+		coinId: 3,
 		name: 'USDC',
 		units: 'USDC',
 		icon:  UsdcIcon,
