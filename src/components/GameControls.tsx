@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import {
 	Card,
@@ -10,7 +10,10 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 
+import { toast } from "sonner"
+
 import { useGameStore, GameState } from '../store/gameStore';
+import { useEffectEvent } from '../hooks/useEffectEvent';
 import useWalletAuth from '../hooks/useWalletAuth';
 
 import { Input } from "@/components/ui/input";
@@ -37,6 +40,8 @@ export default function GameControls() {
 	const isConnected = useGameStore((game: GameState) => game.isConnected);
 	const isLoggedIn = useGameStore((game: GameState) => game.isLoggedIn);
 	const balances = useGameStore((game: GameState) => game.balances);
+	const errors = useGameStore((game: GameState) => game.errors);
+	const errorCount = useGameStore((game: GameState) => game.errorCount);
 
 	const {
 		placeBet,
@@ -115,6 +120,15 @@ export default function GameControls() {
 			return 'Place bet';
 		}
 	}
+
+	const showErrorToast = useEffectEvent(() => {
+		if (errors.length > 0)
+			toast("⚠️ " + errors[errors.length - 1]);
+	});
+
+	useEffect(() => {
+		showErrorToast();
+	}, [errorCount]);
 
 	return (
 		<Card>
