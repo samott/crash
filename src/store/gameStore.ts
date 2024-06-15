@@ -59,6 +59,8 @@ export type GameStateData = {
 	crashes: CrashedGame[];
 	balances: Record<string, string>;
 	wallet: string|null;
+	errors: string[];
+	errorCount: number;
 }
 
 export type GameActions = {
@@ -90,6 +92,8 @@ const initialState : GameStateData = {
 	crashes: [],
 	balances: {},
 	wallet: null,
+	errors: [],
+	errorCount: 0,
 };
 
 type GameWaitingEventParams = {
@@ -133,6 +137,10 @@ type AuthenticateResponseParams = {
 }
 
 type LoginResponseParams = {
+	success: boolean;
+}
+
+type PlaceBetResponseParams = {
 	success: boolean;
 }
 
@@ -395,6 +403,18 @@ export const useGameStore = create<GameState>((set, get) => {
 				betAmount,
 				autoCashOut,
 				currency
+			}, (params: PlaceBetResponseParams) => {
+				if (!params?.success) {
+					const { errorCount, errors } = get();
+					const error = 'Error placing bet';
+					set({
+						errors: [
+							...(errors.length <= 5 ? errors : errors.slice(0, 5)),
+							error
+						],
+						errorCount: errorCount + 1,
+					});
+				}
 			});
 		},
 
